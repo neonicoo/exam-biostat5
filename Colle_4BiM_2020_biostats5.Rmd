@@ -1,0 +1,122 @@
+---
+title: "Colle_4BiM_2020_biostats5"
+author: "Nicolas Mendiboure 4BiM"
+date: "29/01/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r clean variables}
+rm(list=ls())
+```
+
+```{r datas loading}
+goodlife <- read.csv("./good_life.txt", sep = "\t", header = TRUE, dec = ",")
+continent <- goodlife$continent
+region <- goodlife$region_monde
+pays <- goodlife$pays
+co2 <- goodlife$CO2
+eau <- goodlife$eau
+sanitaire <- as.factor(goodlife$sanitaire)
+democratie <- as.factor(goodlife$democratie)
+```
+
+### Q1. Les variables « sanitaire » et « democratie » sont-elles dépendantes ? Justifier votre réponse par un test approprié et exprimer la conclusion avec une phrase complète.
+
+```{r lm1}
+num_sanitaire <- as.numeric(sanitaire)
+num_democratie <- as.numeric(democratie)
+tab <- table(num_sanitaire,num_democratie)
+chisq.test(tab)
+```
+On fait une table de contingence que l'on nomme *tab* avec les effectifs observés pour nos 2 variables « sanitaire » et « democratie ». Les deux variables sont converties préalablement en variables numériques. On effectue un test de chisq2 en comparant nos effectifs observés à nos éffectifs théoriques.
+
+H0 : Les variables « sanitaire » et « democratie » sont idépendantes;
+
+H1 : Les variables « sanitaire » et « democratie » sont dépendantes.
+
+On effectue le test du chisq2 et nous obtenons une p-value de 6.3e- donc très significative, ce qui nous permet de rejeter H0.
+Il existe une relation qui lie la variable « sanitaire » à la variable  « democratie ». Autrement dit, l'état sanitaire varie lorsque que le niveau de démocratie varie.
+
+Remarque : Il faut faire attention à la condition d'utilisation pour le test du chisq2. Celle ci dit qu'il faut vérifier que 80% des classes doivent avoir un effectif théorique supérieure ou égale à 5. 
+
+On peut vérifier cela de la façon suivante :
+
+```{r khideux expected}
+chisq.test(tab)$expected
+```
+
+La condition est donc bien vérifiée. Dans le cas contraire il faudrait utiliser le test exact de *fisher* comme ci dessous :
+
+```{r fisher.test}
+fisher.test(tab)
+```
+
+### Q2. Décrire le plan d’expérience correspondant à l’analyse demandée.
+
+```{r Q2}
+xtabs(~ sanitaire + democratie)
+```
+Grâce à la fonction xtabs ci-dessus, on voit qu'il s'agit d'un plan d'expérience factoriel croisé car pour chaque couple (*sanitaire[i]*, *democratie[j]*) nous avons des mesures de CO2. Le plan est également complet car nous n'avons pas de case vide, mais il est déséquilibré car nous n'avons pas le même nombre de mesure par case. Il s'agit d'un modèle fixe car nos deux facteurs *sanitaire* et *democratie* sont fixes car les pays ont été choisis volontairement et font partie intégrante de l'analyse.
+
+### Q3. Comparer les émissions de CO2 des pays en fonction de leur niveau de démocratie et de leur état sanitaire par un modèle (lm1) et réaliser les tests appropriés ?
+
+Dans la question 1 nous avons vu que nous devions rejeter l'hypothèse disant que les variables *sanitaire* et *democratie* étaient indépendante. Nous savons donc qu'il existe une interaction entre ces 2 variables, mais nous ne savons pas si cette interaction a un effet significatif sur les émissions de C02. On peut tout d'abord commencer par donner un aperçu de cette interaction afin d'avoir un idée : 
+
+```{r interaction plot}
+interaction.plot(sanitaire, democratie, co2, col = 2:4)
+```
+
+
+Nous allons maintenant construire un premier modèle linéaire qui prendra en compte cette interaction. On est dans le cas d'un modèle anova à effets fixes (type I) non nichés, nous utiliserons donc la fonction *lm*.
+
+```{r Q3}
+lm1 <- lm(co2 ~ democratie + sanitaire + (democratie:sanitaire) )
+anova(lm1)
+```
+Après avoir fait un test d'anova on se rend compte que le terme d'interaction n'est pas significatif (p-value = 0.3). Ce tableau permet également de tester les effets du niveau de démocratie et de l'état sanitaire sur l'émission de CO2.
+
+Les effets *democratie* et *sanitaire* sont tous les deux très significatif. 
+
+### Q4. Ecrire le modèle lm1 sous la forme d’une équation et interpréter les termes significatifs.
+
+On a vu à la question précédente que le terme d'interaction n'était pas significatif, nous pouvons donc l'enlever de notre modèle lm1. 
+
+```{r q4}
+lm1b <- lm(co2~democratie+sanitaire)
+summary(lm1b)
+```
+
+L'équation du modèle s'écrit :
+
+$lm1b = \beta_0 + \beta_1 \times I[democratiefort] + \beta_2 \times I[democratiemoyen] + \beta_3 \times I[sanitairehaut]$
+
+-$\beta_0$ correspond à l'intercept, c'est à dire à la valeur prédite d'émission de co2 pour un niveau de democratie faible et un état sanitaire bas. Cette valeur n'est pas significative ;
+
+-$\beta_1$ correspond à la différence de moyenne d'emission de co2 pour pour un niveau de démocratie fort et un niveau de democratie faible, pour même état sanitaire bas. Ce coefficient est significatif ;
+
+-$\beta_2$ correspond à la différence de moyenne d'emission de co2 pour pour un niveau de démocratie moyen et un niveau de democratie faible, pour un même état sanitaire bas. Ce coefficient n'est pas significatif ;
+
+-$\beta_3$ correspond à la différence de moyenne d'emission de co2 pour pour un état sanitaire haut et un état sanitaire bas, pour un même niveau de démocratie faible. Ce coefficient est très significatif.
+
+
+### Q5. Changer l’ordre d’introduction des variables explicatives de votre modèle ? Quels effets observez-vous sur votre analyse (lm2) et pourquoi ?
+
+```{r q5}
+lm2 <- lm(co2~sanitaire+democratie + sanitaire:democratie)
+summary(lm2)
+```
+
+```{r estimation variances}
+sqrt((192.755 - 6.786)/2) #sigma_democratie
+sqrt((313.522 - 6.786)/3) #sigma_sanitaire
+sqrt(6.786) #sigma_residuels
+
+1-pf((192.755/8.142), 2, 2) #test de F pour l'effet democratie
+1-pf((313.522/8.142), 1, 2) #test de F pour l'effet sanitaire 
+```
+
+L'influence de l'état sanitaire et du niveau de démocratie sont donc important car la variabilité expliquée par chacune de ces variables est supérieure à l'erreur "pure".
