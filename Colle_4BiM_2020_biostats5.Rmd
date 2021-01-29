@@ -60,7 +60,7 @@ fisher.test(tab)
 ```{r Q2}
 xtabs(~ sanitaire + democratie)
 ```
-Grâce à la fonction xtabs ci-dessus, on voit qu'il s'agit d'un plan d'expérience factoriel croisé car pour chaque couple (*sanitaire[i]*, *democratie[j]*) nous avons des mesures de CO2. Le plan est également complet car nous n'avons pas de case vide, mais il est déséquilibré car nous n'avons pas le même nombre de mesure par case. Il s'agit d'un modèle fixe car nos deux facteurs *sanitaire* et *democratie* sont fixes car les pays ont été choisis volontairement et font partie intégrante de l'analyse.
+Grâce à la fonction xtabs ci-dessus, on voit qu'il s'agit d'un plan d'expérience factoriel croisé car pour chaque couple (*sanitaire[i]*, *democratie[j]*) nous avons des mesures de CO2. Le plan est également complet car nous n'avons pas de case vide, mais il est déséquilibré car nous n'avons pas le même nombre de mesure par case. Il s'agit d'un modèle aléatoire car nos deux facteurs *sanitaire* et *democratie* sont aléatoire, les pays ont été choisis volontairement et sont fixes mais les variables qui caractérisent ces pays sont quant à elles aléatoires.
 
 ### Q3. Comparer les émissions de CO2 des pays en fonction de leur niveau de démocratie et de leur état sanitaire par un modèle (lm1) et réaliser les tests appropriés ?
 
@@ -71,7 +71,7 @@ interaction.plot(sanitaire, democratie, co2, col = 2:4)
 ```
 
 
-Nous allons maintenant construire un premier modèle linéaire qui prendra en compte cette interaction. On est dans le cas d'un modèle anova à effets fixes (type I) non nichés, nous utiliserons donc la fonction *lm*.
+Nous allons maintenant construire un premier modèle linéaire qui prendra en compte cette interaction :
 
 ```{r Q3}
 lm1 <- lm(co2 ~ democratie + sanitaire + (democratie:sanitaire) )
@@ -79,16 +79,26 @@ anova(lm1)
 ```
 Après avoir fait un test d'anova on se rend compte que le terme d'interaction n'est pas significatif (p-value = 0.3). Ce tableau permet également de tester les effets du niveau de démocratie et de l'état sanitaire sur l'émission de CO2.
 
-Les effets *democratie* et *sanitaire* sont tous les deux très significatif. 
+Les effets *democratie* et *sanitaire* sont tous les deux très significatif.
 
-### Q4. Ecrire le modèle lm1 sous la forme d’une équation et interpréter les termes significatifs.
+On a vu que le terme d'interaction n'était pas significatif, nous pouvons donc l'enlever de notre modèle lm1 :
 
-On a vu à la question précédente que le terme d'interaction n'était pas significatif, nous pouvons donc l'enlever de notre modèle lm1. 
-
-```{r q4}
+```{r new lm1}
 lm1b <- lm(co2~democratie+sanitaire)
 summary(lm1b)
 ```
+Grâce au *summary* on voit que les effets de  *democratiefort* et de *sanitairehaut* haut diffèrent de *democratiebas* et *sanitairebas*. Il est possible de faire un contraste pour tester *democratiefort* et *democratiemoyen* :
+
+```{r contrast}
+contrasts(democratie) #par défaut
+contrasts(democratie) <- contr.treatment(3, base = 2)
+contrasts(democratie) # democratiefort passe en référence (dans l'intercept)
+lm1b <- lm(co2~democratie+sanitaire)
+summary(lm1b)
+```
+On voit donc qu'il y a une différence de moyenne d'émission de co2 entre *democratiefort* (maintenant dans l'intercept) et *democratiemoyen*.
+
+### Q4. Ecrire le modèle lm1 sous la forme d’une équation et interpréter les termes significatifs.
 
 L'équation du modèle s'écrit :
 
@@ -106,11 +116,30 @@ $lm1b = \beta_0 + \beta_1 \times I[democratiefort] + \beta_2 \times I[democratie
 ### Q5. Changer l’ordre d’introduction des variables explicatives de votre modèle ? Quels effets observez-vous sur votre analyse (lm2) et pourquoi ?
 
 ```{r q5}
-lm2 <- lm(co2~sanitaire+democratie + sanitaire:democratie)
-summary(lm2)
+lm2 <- lm(co2~sanitaire + democratie)
+anova(lm2)
+```
+Lorsque l'on compare les tests anova de lm1b et lm2 on remarque que la somme des carrés des écarts résiduels reste la même, et la somme des carrés des écarts des 2 facteurs reste également identique :
+
+```{r sum mean sq}
+(385.51 + 313.52) == (605.24 + 93.79)
+```
+En effet la somme des carrés des écarts totale est la même quel que soit le modèle, puisqu’elle correspond à la somme des carrés des écarts entre valeurs observées et moyenne générale : $SCE_T = SCE_M + SCE_R$ . La $SCE_R$ étant identique pour les trois modèles, ceci explique pourquoi la $SCE_M$ est également identique.
+
+Par contre, on observe des différences entre les sommes des carrés des écarts expliqués par chacun des facteurs
+d’un modèle à l’autre. Néanmoins dans les 2 modèles, les deux facteurs sont significatifs. Les sommes des carrés ne sont pas identiques car nous avons un plan déséquilibré, ainsi les décompositions ne sont pas indépendantes.
+
+### Q6. Proposer une solution pour avoir des estimations correctes de votre décomposition de la variance et refaire les conclusions de l’analyse.
+
+Une solution pour avoir des estimations correctes de notre décomôsition de la variance serait de transformer notre plan factoriel déséquilibré en plan équilibré. Il faudrait avoir dans chaque case le même nombre de répétition, à savoir le nombre de répétitions le plus faible que nous avons dans notre plan déséquilibré, c'est à dire 7. Ainsi on passerait de 114 mesures à 42 mesures(3 democratie * 2 sanitaire * 7 répétitions ), les tests perdront donc malheureusement de la puissance. 
+
+```{r deseq2eq}
+
+
 ```
 
-```{r estimation variances}
+
+```{r estimations variances}
 sqrt((192.755 - 6.786)/2) #sigma_democratie
 sqrt((313.522 - 6.786)/3) #sigma_sanitaire
 sqrt(6.786) #sigma_residuels
