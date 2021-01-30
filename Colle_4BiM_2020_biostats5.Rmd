@@ -339,15 +339,28 @@ Commençons par un modèle *lm* classique. La variable *region* étant nichée d
 ```{r lm classiques}
 lm5 <- lm(co2 ~ continent + region) # attention l'ordre est important 
 anova(lm5)
+summary(lm5)
 ```
 Avec ce test d'anova nous ne pouvons regarder ici  que le niveau du facteur niché, à savoir région. Ainsi il y a des différences très significatives entre les régions de façon globale.
 
-Maintenant essayons de regarder s'il existe un effet globale des continents. Pour cela nous allons construire un modèle qui comptabilisera la variabilité expliquée par l'effet région avec l'erreur pure dans la résidelle.
+Si l'on regarde les coefficients de *lm5*, et en particulier ceux portés par la variable *region* (car c'est la seule qui a de l'intérêt ici) on voit tout d'abord que certain d'eux non pas de valeur, peut être par manque de donnée. Par ailleurs, si l'on regarde les régions d'Amérique Latine et d'Europe de l'Est, celle-ci ont des coefficients négatifs. Cela signifie que l'écart de moyenne entre ces régions et celle mise en intercepte (par défaut ici c'est l'Afrique Subsaharienne) est négatif, donc que en moyenne l'émission de CO2 est plus élevée en Afrique Subsaharienne qu'en Amérique Latine ou qu'en Europe de l'Est. Toutefois cette interprétation manque de cohérence, de plus on voit dans le summary que l'intercept n'est pas du tout significatif. Il faudrait donc faire un contrast ici pour changer de région. 
+
+```{r lm5 contrast}
+region2 <- as.factor(region)
+contrasts(region2) <- contr.treatment(9, base = 5) # Asie_indus en intercepte
+
+lm5b <- lm(co2 ~ continent + region2) 
+summary(lm5b)
+```
+Cette fois ci en ayant placé la région Asie_indus en intercepte, ce dernier est très significatif (p-value = 1.41e-11), cela va nous permettre de mieux comparer 2 à 2 les régions. Par exemple les régions Af_subsahar, Am_latine, Asie_Centrale, Asie_S_SE et Europe_Est on des coefficients négatifs. Cela signifie que leur différence de moyenne avec la région d'Asie_indus est négative, autrement dit que l'Asie industrielle émet plus de CO2 que ces régions là.
+
+Maintenant essayons de regarder s'il existe un effet globale des continents. Pour cela nous allons construire un modèle qui comptabilisera la variabilité expliquée par l'effet région avec l'erreur pure dans la résiduelle.
 
 
 ```{r aov lm6}
 lm6 <- aov(co2 ~ continent + Error(region))
 summary(lm6)
+coefficients(lm6)
 ```
 Ici on voit donc que l'effet continent n'est pas significatif sur l'émission de CO2 (p-value = 0.621). Par ailleurs la hiérarchisation de notre modèle coûte en puissance, ainsi la p-value du "niveau supérieur" est  beaucoup plus élevée. 
 
@@ -356,11 +369,6 @@ Ici on voit donc que l'effet continent n'est pas significatif sur l'émission de
 library(nlme)
 library(lme4)
 ```
-
-```{r dependance continent - region}
-chisq.test(tab2)
-```
-On voit que les variables *region* et *continent* sont dépendantes par le test du chisq2. En réalité ce test est inutile car nous savons que *region* est subordonnée à *continent*, il est donc normale d'avoir une relation entre ces deux variables. 
 
 Comme le modèle est mixte et hiérarchisé, nous allons utiliser un modèle *lme()* de la librairie *nlme*. Celui-ci est plus approprié à notre cas de figure qu'un modèle *lm()* classique.
 
