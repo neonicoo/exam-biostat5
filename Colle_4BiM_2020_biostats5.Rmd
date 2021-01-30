@@ -220,7 +220,7 @@ hist(F[, 2], col = 5) ; abline(v = anova(lm1)$"F value"[2], col = 'red')
 hist(F[,3], col = 3) ; abline(v = anova(lm1)$"F value"[3], col = 'red')
 ```
 
-Avec ce code nous avons réalisé un test de simulation par permutation. Nous avons fait 1000 simulations dans lesquelles nous avons permuté aléatoirement et sans remise les 114 mesures d'émissions de CO2. ENsuite nous avons réalisé 1000 modèles linaire *lm* semblable au modèle *lm1*, c'est à dire que nous retrouvons nos trois termes : (*sanitaire*, *democratie*, *sanitaire:democratie*). À chaque simulation nous stockons dans une matrice *F* (1000 par 4) les F-values issus des tests anova.
+Avec ce code nous avons réalisé un test de simulation par rééchantillonage et permutation. Nous avons fait 1000 simulations dans lesquelles nous avons permuté aléatoirement et sans remise les 114 mesures d'émissions de CO2. ENsuite nous avons réalisé 1000 modèles linaire *lm* semblable au modèle *lm1*, c'est à dire que nous retrouvons nos trois termes : (*sanitaire*, *democratie*, *sanitaire:democratie*). À chaque simulation nous stockons dans une matrice *F* (1000 par 4) les F-values issus des tests anova.
 
 Les trois sorties comparent le nombre de fois sur les 1000 simulations nous obtenons une F-value supérieure à celle des facteurs respectifs {1, 2, 3} dans le modèle lm1. POur les facteurs 1 et 2 nous obtenons 0, cela se vérifie sur les histogrammes où l'on aperçois même pas la droite verticale correspondant à la F-value des facteurs pour un anova(lm1).
 
@@ -249,4 +249,100 @@ A priori les résidus semblent cette fois ci suivre une loi normale d'espérance
 ```{r anova lm4}
 anova(lm4)
 ```
+D'après l'anova de *lm4*, les effets democratie et sanitaire sont encore plus significatifs qu'avec le modèle *lm1*.
+
+```{r simulation avec logCO2}
+Fb = matrix(0, nc = 4, nr = 1000)
+for (i in 1:1000) {
+  logCO2_sim = sample(x = logCO2,
+                   size = length(logCO2),
+                   replace = FALSE)
+  lm_temp = lm(logCO2_sim ~ sanitaire * democratie)
+  Fb[i, ] = anova(lm_temp)$"F value"
+}
+sum(Fb[, 1] > anova(lm4)$"F value"[1]) / 1000
+sum(Fb[, 2] > anova(lm4)$"F value"[2]) / 1000
+sum(Fb[, 3] > anova(lm4)$"F value"[3]) / 1000
+```
+En refaisant la simulation mais avec cette fois - ci logCO2, on retombe sur les mêmes résultats, qui est est cohérent ave l'anova fait juste au dessus.
+
+### Q10. En fonction des différents modèles et des analyses réalisées jusque là, discuter de la robustesse de l’anova en fonction des conditions d’application du test.
+
+
+
+### Q11. Les variables consommation d’eau et émission de CO2 sont-elles corrélées ?Faire un test paramétrique et un test non paramétrique et discuter de la différence de pvalue entre les deux tests.
+
+Les tests paramétriques fonctionnent en supposant que les données que l’on a à disposition suivent un type de loi de distribution connu (en général la loi normale). Les tests non paramétriques ne font aucune hypothèse sur le type de loi de distribution des données. Ils se basent uniquement sur les propriétés numériques des échantillons.
+
+Pour voir si nos variables eau et co2 sont corrélées nous pouvons utiliser le *cor.test*. Attention par défaut le *cor.test* utilise la méthode de "Pearson" fait l'hypothèse que notre échantillon suit une loi normale, c'est donc un test paramétrique. Nous pouvons donc faire une simulation par permutation afin de voir si nos variables suivent une loi normale :
+
+```{r q11 norm}
+library(nortest)
+
+R <- rank(co2)
+S <- rank(eau)
+D <- sum((R-S)**2)
+
+simulation=vector()
+for (i in 1:1000) {
+  R_sim=sample(R, length(R),replace=FALSE)
+  S_sim=sample(S, length(S), replace = FALSE)
+  simulation[i]=sum((R_sim - S_sim)**2)
+}
+
+hist(simulation, col = "aquamarine")
+cvm.test(simulation)
+```
+L 'hypothèse que nos 2 variablse eau et co2 suivent une distribution bormale est donc vérifiée, nous pouvons utiliser un test paramétrique :
+
+```{r test param}
+cor.test(co2, eau, m = "pearson")
+```
+Nous obtenons une p-value $<< 0.05$, ce coefficient de corrélation de Pearson est donc bien significatif, nous pouvons rejeter H0 et dire que les variables eau et co2 sont corrélées. 
+
+Remarque : Comme nous avons utilisé plusieurs test ici, nous aurions pu utiliser une correction de Bonférroni.
+
+Nous aurions également pu faire un modèle linéaire comme ci-dessous, il s'agit également d'un test paramétrique, on remarque que la p-value est la même que dans le *cor.test*.
+
+```{r lm q11}
+anova(lm(co2~ eau))
+```
+
+Pour ce qui est de tester la corrélation avec un test non paramétrique, nous allons également utiliser la fonction *cor.test* avec des coefficient non parametriques cette fois ci. On peut par exemple utiliser les coefficients de corrélation de Kendall ou de Spearman : 
+
+```{r test non param}
+cor.test(co2, eau,  m="spearman") # attention aux ex-aequos 
+cor.test(co2, eau, m="kendall")
+```
+Les p-values sont très faibles dans les 2 tests, la corrélation est donc significative et nous pouvons rejeter H0 dans les 2 cas.
+
+On observe que la p-value du test non-paramétrique est très inférieure à celle du test paramétrique. De façon générale, les tests paramétriques sont plus puissants que les test non-paramétriques, c'est à dire qu'ils seront plus apte à rejeter H0, si le rejet est justifié. En revanche, un test non paramétrique sera lui plus robuste qu'un test paramétrique, c'est à dire qu'il pourra être utilisé dans un plus grand nombre de situations.
+
+
+On s’intéresse maintenant à la géographie des émissions de CO2, avec les variables continent (considérée comme fixe) et region_monde (considérée ici, pour les besoins de l’exercice, comme aléatoire).
+
+### Q12. Décrire le plan d’expérience qui intègre les variables continent et region_monde pour expliquer les émissions de CO2 (la variable pays ne sera pas considérée ici).
+
+```{r q12}
+table(continent, region)
+```
+
+
+À présent le plan d'expérience qui intègre les variables *continent*, *co2* et *region* est un plan d'expérience factoriel hiérarchisé : *region* est nichée dans *continent*. C'est un plan mixte : *region* est aléatoire (9 niveaux) et continent est fixe (4 niveaux). Il n'y a pas le même nombre de répétition par couple (continent[i], region[j]), c'est donc déséquilibré.
+
+
+### Q13. Construire le modèle adéquate pour estimer la part de variabilité apportée par les pays et par les régions du monde, puis comparez globalement les différents continents. Donner ces valeurs et justifiez vos conclusions par les tests appropriés. Si les fonctions utilisées ne permettent pas d’obtenir des tests pour les effets fixes (manque de données), vous le préciserez sur votre copie et ne chercherez pas à faire d’autres analyses
+
+```{r modele q13}
+library(nlme)
+library(lme4)
+
+lm5 <- lme(fixed=co2~1+continent, random = list(continent=~1, region=~1))
+lm5b <- lmer(co2~continent+(1|continent:region))
+
+summary(lm5b)
+anova(lm5b)
+```
+
+
 
