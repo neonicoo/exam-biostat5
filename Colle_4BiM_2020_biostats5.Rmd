@@ -2,7 +2,7 @@
 title: "Colle_4BiM_2020_biostats5"
 author: "Nicolas Mendiboure 4BiM"
 date: "29/01/2021"
-geometry: margin=1cm
+geometry: margin=2cm
 output: pdf_document
 ---
 
@@ -324,7 +324,7 @@ On s’intéresse maintenant à la géographie des émissions de CO2, avec les v
 ### Q12. Décrire le plan d’expérience qui intègre les variables continent et region_monde pour expliquer les émissions de CO2 (la variable pays ne sera pas considérée ici).
 
 ```{r q12}
-table(continent, region)
+tab2 <- table(continent, region); tab2
 ```
 
 
@@ -333,16 +333,48 @@ table(continent, region)
 
 ### Q13. Construire le modèle adéquate pour estimer la part de variabilité apportée par les pays et par les régions du monde, puis comparez globalement les différents continents. Donner ces valeurs et justifiez vos conclusions par les tests appropriés. Si les fonctions utilisées ne permettent pas d’obtenir des tests pour les effets fixes (manque de données), vous le préciserez sur votre copie et ne chercherez pas à faire d’autres analyses
 
-```{r modele q13}
+
+Commençons par un modèle *lm* classique. La variable *region* étant nichée dans *continent*, nous les introduirons dans l'ordre décroissant (conteneur + contenu ) dans le modèle.
+
+```{r lm classiques}
+lm5 <- lm(co2 ~ continent + region) # attention l'ordre est important 
+anova(lm5)
+```
+Avec ce test d'anova nous ne pouvons regarder ici  que le niveau du facteur niché, à savoir région. Ainsi il y a des différences très significatives entre les régions de façon globale.
+
+Maintenant essayons de regarder s'il existe un effet globale des continents. Pour cela nous allons construire un modèle qui comptabilisera la variabilité expliquée par l'effet région avec l'erreur pure dans la résidelle.
+
+
+```{r aov lm6}
+lm6 <- aov(co2 ~ continent + Error(region))
+summary(lm6)
+```
+Ici on voit donc que l'effet continent n'est pas significatif sur l'émission de CO2 (p-value = 0.621). Par ailleurs la hiérarchisation de notre modèle coûte en puissance, ainsi la p-value du "niveau supérieur" est  beaucoup plus élevée. 
+
+
+```{r libraries}
 library(nlme)
 library(lme4)
+```
 
+```{r dependance continent - region}
+chisq.test(tab2)
+```
+On voit que les variables *region* et *continent* sont dépendantes par le test du chisq2. En réalité ce test est inutile car nous savons que *region* est subordonnée à *continent*, il est donc normale d'avoir une relation entre ces deux variables. 
+
+Comme le modèle est mixte et hiérarchisé, nous allons utiliser un modèle *lme()* de la librairie *nlme*. Celui-ci est plus approprié à notre cas de figure qu'un modèle *lm()* classique.
+
+
+```{r lm 5}
 lm5 <- lme(fixed=co2~1+continent, random = list(continent=~1, region=~1))
-lm5b <- lmer(co2~continent+(1|continent:region))
-
-summary(lm5b)
-anova(lm5b)
+summary(lm5)
+coefficients(lm5)
 ```
 
 
+```{r lm6}
+lm6 <- lmer(co2~continent+(1|continent:region))
+summary(lm6)
+anova(lm6)
+```
 
