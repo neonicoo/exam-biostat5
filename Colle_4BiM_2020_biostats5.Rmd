@@ -2,6 +2,7 @@
 title: "Colle_4BiM_2020_biostats5"
 author: "Nicolas Mendiboure 4BiM"
 date: "29/01/2021"
+geometry: margin=1cm
 output: pdf_document
 ---
 
@@ -60,7 +61,7 @@ fisher.test(tab)
 ```{r Q2}
 xtabs(~ sanitaire + democratie)
 ```
-Grâce à la fonction xtabs ci-dessus, on voit qu'il s'agit d'un plan d'expérience factoriel croisé car pour chaque couple (*sanitaire[i]*, *democratie[j]*) nous avons des mesures de CO2. Le plan est également complet car nous n'avons pas de case vide, mais il est déséquilibré car nous n'avons pas le même nombre de mesure par case. Il s'agit d'un modèle aléatoire car nos deux facteurs *sanitaire* et *democratie* sont aléatoire, les pays ont été choisis volontairement et sont fixes mais les variables qui caractérisent ces pays sont quant à elles aléatoires.
+Grâce à la fonction xtabs ci-dessus, on voit qu'il s'agit d'un plan d'expérience factoriel croisé à deux facteurs (democratie 3 niveaux et sanitaire  niveaux) car pour chaque couple (*sanitaire[i]*, *democratie[j]*) nous avons des mesures de CO2. Le plan est également complet car nous n'avons pas de case vide, mais il est déséquilibré car nous n'avons pas le même nombre de mesures par case. Il s'agit d'un modèle aléatoire car nos deux facteurs *sanitaire* et *democratie* sont aléatoire, les pays ont été choisis volontairement et sont fixes mais les variables qui caractérisent ces pays sont quant à elles aléatoires.
 
 ### Q3. Comparer les émissions de CO2 des pays en fonction de leur niveau de démocratie et de leur état sanitaire par un modèle (lm1) et réaliser les tests appropriés ?
 
@@ -74,19 +75,20 @@ interaction.plot(sanitaire, democratie, co2, col = 2:4)
 Nous allons maintenant construire un premier modèle linéaire qui prendra en compte cette interaction :
 
 ```{r Q3}
-lm1 <- lm(co2 ~ democratie + sanitaire + (democratie:sanitaire) )
+lm1 <- lm(co2 ~ democratie * sanitaire )
 anova(lm1)
 ```
 Après avoir fait un test d'anova on se rend compte que le terme d'interaction n'est pas significatif (p-value = 0.3). Ce tableau permet également de tester les effets du niveau de démocratie et de l'état sanitaire sur l'émission de CO2.
 
 Les effets *democratie* et *sanitaire* sont tous les deux très significatif.
 
-On a vu que le terme d'interaction n'était pas significatif, nous pouvons donc l'enlever de notre modèle lm1 :
+On a vu que le terme d'interaction n'était pas significatif, nous pouvons donc l'enlever de notre modèle lm1. Ce raisonnement n'est toutefois pas le meilleur car si l'on veut tester les termes par rapport au terme d'interaction, celui-ci ayant été retiré se trouvera dans la résiduelle.
 
 ```{r new lm1}
-lm1b <- lm(co2~democratie+sanitaire)
+lm1b <- lm(co2~ democratie + sanitaire)
 summary(lm1b)
 ```
+
 Grâce au *summary* on voit que les effets de  *democratiefort* et de *sanitairehaut* haut diffèrent de *democratiebas* et *sanitairebas*. Il est possible de faire un contraste pour tester *democratiefort* et *democratiemoyen* :
 
 ```{r contrast}
@@ -122,7 +124,7 @@ anova(lm2)
 Lorsque l'on compare les tests anova de lm1b et lm2 on remarque que la somme des carrés des écarts résiduels reste la même, et la somme des carrés des écarts des 2 facteurs reste également identique :
 
 ```{r sum mean sq}
-(385.51 + 313.52) == (605.24 + 93.79)
+(385.51 + 313.52) == (605.24 + 93.79) # les Mean Sq sont égaux
 ```
 En effet la somme des carrés des écarts totale est la même quel que soit le modèle, puisqu’elle correspond à la somme des carrés des écarts entre valeurs observées et moyenne générale : $SCE_T = SCE_M + SCE_R$ . La $SCE_R$ étant identique pour les trois modèles, ceci explique pourquoi la $SCE_M$ est également identique.
 
@@ -133,19 +135,118 @@ d’un modèle à l’autre. Néanmoins dans les 2 modèles, les deux facteurs s
 
 Une solution pour avoir des estimations correctes de notre décomôsition de la variance serait de transformer notre plan factoriel déséquilibré en plan équilibré. Il faudrait avoir dans chaque case le même nombre de répétition, à savoir le nombre de répétitions le plus faible que nous avons dans notre plan déséquilibré, c'est à dire 7. Ainsi on passerait de 114 mesures à 42 mesures(3 democratie * 2 sanitaire * 7 répétitions ), les tests perdront donc malheureusement de la puissance. 
 
-```{r deseq2eq}
 
+On pourrait construire un nouveau modèle *aov()* qui cette fois ci prendrait en compte un terme d'erreur porté par l'interaction. Les effets aléatoires doivent être testés par rapport au terme d'intéraction qui inclue à la fois l'erreur pure et l'intéraction.
 
+```{r q6}
+lm3 <- aov(co2~democratie+sanitaire+Error(democratie:sanitaire))
+summary(lm3)
 ```
+Par ailleurs il es facile de retrouver ces p-values avec notre modèle lm1 ( avec interaction ) initial. 
 
-
-```{r estimations variances}
-sqrt((192.755 - 6.786)/2) #sigma_democratie
-sqrt((313.522 - 6.786)/3) #sigma_sanitaire
-sqrt(6.786) #sigma_residuels
-
+```{r estimation effet}
 1-pf((192.755/8.142), 2, 2) #test de F pour l'effet democratie
 1-pf((313.522/8.142), 1, 2) #test de F pour l'effet sanitaire 
 ```
 
-L'influence de l'état sanitaire et du niveau de démocratie sont donc important car la variabilité expliquée par chacune de ces variables est supérieure à l'erreur "pure".
+On peut également estimer la contribution à la variabilité pour nos 2 facteurs aléatoires.
+
+```{r estimations variances}
+sqrt((192.755 - 6.786)/2) #sigma_democratie
+sqrt((313.522 - 6.786)/3) #sigma_sanitaire
+sqrt(6.786) #sigma_residuelles
+```
+Ainsi on peut on peur dire qu'il y a à la fois un effet democratie et aussi un effet sanitaire.
+
+### Q7. Vérifier les hypothèses associées au premier modèle (lm1) et décrire les problèmes associés.
+
+Les hypothèses à vérifier sont l'égalité des variances entre les différents groupes, la normalité des distributions par groupe, on suppose que les mesures sont indépendantes car effectuées sur des pays différents et qu'il n'y a pas de points aberrants. Enfin on suppose l'existence d'une relation réelle entre l'émission de CO2 et les niveaux de démocraties ainsi que les états sanitaires des pays.
+
+```{r hypothèses q7}
+par(mfrow = c(2, 2))
+plot(lm1)
+```
+Sur le premier graphique (haut gauche) on voit une légère forme en 'cloche' pour les résidus, de plus l'espérance des résidus est proche de 0 mais n'est pas nulle. ON peut alors se demander si le modèle est bien adapté ? 
+
+Sur le graphique en haut à droite, là aussi il est difficile de dire si les résidus suivent une li normale ou non, le mieu est de faire un test de normalité, *shapiro-wilk* par exemple :
+
+```{r shapiro-wilk}
+shapiro.test(residuals(lm1))
+```
+On a une p-value très significative qui nous permet de rejeter H0 : les résidus sont normalement distribués.
+
+Troisième graphique (bas gauche) concernant les variances des résidus pour chaque combinaison de niveau de démocratie et d'état sanitaire. Là aussi il est difficile de conclure à une variance constante des résidus avec le graphe car on peut discerner une légère forme constituée de 2 pentes. On va donc effectuer une test de *bartlett* :
+
+```{r bartlett.test}
+bartlett.test(residuals(lm1), interaction(democratie, sanitaire))
+```
+La p-value est très faible donc on rejet l'hypothèse nulle de variance constante des résidus. 
+
+Sur le 4ème graphique (bas droite) on voit que les points 33, 35 et 38 se démarque un peu plus que les autres, mais gardent une distance de Cook inférieure à 0.5, donc nous pouvons dire qu'il n'y a pas de valeur aberrante (outlier).
+
+On peut également vérifier cette dernière hypothèse avec le plot suivant qui est peut être plus clair :
+
+```{r cook}
+par(mfrow=c(1,1))
+plot(lm1,4)
+```
+
+En conclusion, ces hypothèses nous permettent de dire que le modèle lm1 n'est pas le modèle le plus adapté pour notre analyse. 
+
+### Q8. On propose le code R ci-dessous. Expliquer ce qui est fait et comment peut-ont interpréter les 3 sorties numériques finales ?
+
+```{r code q8}
+F = matrix(0, nc = 4, nr = 1000)
+for (i in 1:1000) {
+  CO2_sim = sample(x = co2,
+                   size = length(co2),
+                   replace = FALSE)
+  lm_temp = lm(CO2_sim ~ sanitaire * democratie)
+  F[i, ] = anova(lm_temp)$"F value"
+}
+sum(F[, 1] > anova(lm1)$"F value"[1]) / 1000
+sum(F[, 2] > anova(lm1)$"F value"[2]) / 1000
+sum(F[, 3] > anova(lm1)$"F value"[3]) / 1000
+```
+
+Graphiquement cela donnerait :
+
+Remarque : Sur les histogrammes on obtient des "formes" de loi de chisq2 ou loi de Fisher. Attention toutefois rien ne dit qu'il s'agit réellement de l'une ou l'autre de ces lois.
+
+```{r histo}
+par(mfrow=c(1,3))
+hist(F[,1], col = 4) ; abline(v = anova(lm1)$"F value"[1], col = 'red')
+hist(F[, 2], col = 5) ; abline(v = anova(lm1)$"F value"[2], col = 'red')
+hist(F[,3], col = 3) ; abline(v = anova(lm1)$"F value"[3], col = 'red')
+```
+
+Avec ce code nous avons réalisé un test de simulation par permutation. Nous avons fait 1000 simulations dans lesquelles nous avons permuté aléatoirement et sans remise les 114 mesures d'émissions de CO2. ENsuite nous avons réalisé 1000 modèles linaire *lm* semblable au modèle *lm1*, c'est à dire que nous retrouvons nos trois termes : (*sanitaire*, *democratie*, *sanitaire:democratie*). À chaque simulation nous stockons dans une matrice *F* (1000 par 4) les F-values issus des tests anova.
+
+Les trois sorties comparent le nombre de fois sur les 1000 simulations nous obtenons une F-value supérieure à celle des facteurs respectifs {1, 2, 3} dans le modèle lm1. POur les facteurs 1 et 2 nous obtenons 0, cela se vérifie sur les histogrammes où l'on aperçois même pas la droite verticale correspondant à la F-value des facteurs pour un anova(lm1).
+
+Pour le facteur 3 nous obtenons un score de 0.3 environ. Ces simulations visent à confirmer les effets aléatoires des facteurs sanitaire et democratie. En effet le fait d'avoir permuté les mesures de CO2 et les scores obtenus pour les facteurs 1 et 2 montrent bien qu'il existe un réel lien entre l'émission de CO2 et le niveau de démocratie du pays ainsi que l'état sanitaire de celui ci. L'interaction des deux facteurs quant à elle n'affecte pas ces mesures, c'est pour cela que nous avons une score pour le facteur (d'interaction) 3 proche de la p-value du *anova(lm1)*. 
+
+### Q9. On se propose de transformer la variable CO2 en ln(CO2), refaire l’analyse avec la variable transformée et refaire les conclusions.
+
+```{r q9}
+logCO2 <- log(co2)
+lm4 <- lm(logCO2 ~ democratie*sanitaire)
+```
+
+On vérifie rapidement les hypothèses associées à ce nouveau modèle lm4 (sans détailler ici)
+```{r hypotheses lm4}
+par(mfrow = c(2,2))
+plot(lm4)
+shapiro.test(residuals(lm4)) # on ne rejete pas H0
+bartlett.test(residuals(lm4), democratie)
+bartlett.test(residuals(lm4), sanitaire) # => on rejete H0
+par(mfrow = c(1,1))
+plot(lm4, 4)
+```
+
+A priori les résidus semblent cette fois ci suivre une loi normale d'espérance nulle. Cependant nous n'avons toujours pas d'homogénéité des variances. Le modèle est un peu plus adapté que lm1 mais le soucis d'homoscédasticité persiste. Les distances de cooks sont également moins élévées.
+
+```{r anova lm4}
+anova(lm4)
+```
+
