@@ -426,15 +426,13 @@ library(lme4)
 ```{r lm 6}
 lm6 <- lme(fixed=co2~1+continent, random = list(continent=~1, region=~1))
 summary(lm6)
-coefficients(lm6)
-Anova(lm6, type = 2)
 ```
 
+Ici nous manquons de donner pour conclure à un effet fixe de *continent*. Essayons avec un dernier modèle :
 
 ```{r lm7}
 lm7 <- lmer(co2~continent+(1|continent:region))
 summary(lm7)
 anova(lm7)
-Anova(lm7, type = 2)
 ```
-
+Ici nous avons la confirmation par l'anova que *continent* n'induit globalement aucun effet sur l'émission de CO2. Par ailleurs, dans le *summary()* on voit clairement qu'aucun des coefficient n'est significatif. L'Asie est cependant à la limite de la significativité (p-value = 0.09), finalement cela est plus ou moins cohérent avec ce que nous avons plus haut avec notre modèle *lm4b* lorsque nous avons placé la région d'Asie industrielle en intercept.
