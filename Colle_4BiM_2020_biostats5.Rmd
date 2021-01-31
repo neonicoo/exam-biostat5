@@ -76,13 +76,14 @@ Nous allons maintenant construire un premier modèle linéaire qui prendra en co
 
 ```{r Q3}
 lm1 <- lm(co2 ~ democratie * sanitaire )
+coefficients(lm1)
 anova(lm1)
 ```
 Après avoir fait un test d'anova on se rend compte que le terme d'interaction n'est pas significatif (p-value = 0.3). Ce tableau permet également de tester les effets du niveau de démocratie et de l'état sanitaire sur l'émission de CO2.
 
-Les effets *democratie* et *sanitaire* sont tous les deux très significatif.
+Les effets *democratie* et *sanitaire* sont tous les deux très significatif. Ainsi il y aurait globalement une différence d'émission de CO2 d'un niveau de démocratie à un autre, de plus le taux d'émission dans un état sanitaire bas serait globalement moins élevé que dans un état sanitaire haut (coefficient *sanitairehaut* positif, *sanitairebas* dans l'intercepte).
 
-On a vu que le terme d'interaction n'était pas significatif, nous pouvons donc l'enlever de notre modèle lm1. Ce raisonnement n'est toutefois pas le meilleur car si l'on veut tester les termes par rapport au terme d'interaction, celui-ci ayant été retiré se trouvera dans la résiduelle.
+On a vu que le terme d'interaction n'était pas significatif, nous pouvons donc l'enlever de notre modèle *lm1*. Ce raisonnement n'est toutefois pas le meilleur car si l'on veut tester les termes par rapport au terme d'interaction, celui-ci ayant été retiré se trouvera dans la résiduelle.
 
 ```{r new lm1}
 lm1b <- lm(co2~ democratie + sanitaire)
@@ -93,10 +94,11 @@ Grâce au *summary* on voit que les effets de  *democratiefort* et de *sanitaire
 
 ```{r contrast}
 contrasts(democratie) #par défaut
-contrasts(democratie) <- contr.treatment(3, base = 2)
-contrasts(democratie) # democratiefort passe en référence (dans l'intercept)
-lm1b <- lm(co2~democratie+sanitaire)
-summary(lm1b)
+democratie2 <- democratie
+contrasts(democratie2) <- contr.treatment(3, base = 2)
+contrasts(democratie2) # democratiefort passe en référence (dans l'intercept)
+lm1c <- lm(co2~democratie2+sanitaire)
+summary(lm1c)
 ```
 On voit donc qu'il y a une différence de moyenne d'émission de co2 entre *democratiefort* (maintenant dans l'intercept) et *democratiemoyen*.
 
@@ -118,18 +120,19 @@ $lm1b = \beta_0 + \beta_1 \times I[democratiefort] + \beta_2 \times I[democratie
 ### Q5. Changer l’ordre d’introduction des variables explicatives de votre modèle ? Quels effets observez-vous sur votre analyse (lm2) et pourquoi ?
 
 ```{r q5}
-lm2 <- lm(co2~sanitaire + democratie)
+lm2 <- lm(co2 ~ sanitaire * democratie)
+coefficients(lm2)
 anova(lm2)
 ```
-Lorsque l'on compare les tests anova de lm1b et lm2 on remarque que la somme des carrés des écarts résiduels reste la même, et la somme des carrés des écarts des 2 facteurs reste également identique :
+Les estimations des coefficients sont identiques à celles du premier modèle car les mêmes termes ont été introduits. Ainsi les prédictions du modèle sont les mêmes, et leur sommes des carrés des écarts expliqués par le modèle ainsi que celle de la résiduelle sont identiques. 
 
-```{r sum mean sq}
-(385.51 + 313.52) == (605.24 + 93.79) # les Mean Sq sont égaux
-```
 En effet la somme des carrés des écarts totale est la même quel que soit le modèle, puisqu’elle correspond à la somme des carrés des écarts entre valeurs observées et moyenne générale : $SCE_T = SCE_M + SCE_R$ . La $SCE_R$ étant identique pour les trois modèles, ceci explique pourquoi la $SCE_M$ est également identique.
 
-Par contre, on observe des différences entre les sommes des carrés des écarts expliqués par chacun des facteurs
-d’un modèle à l’autre. Néanmoins dans les 2 modèles, les deux facteurs sont significatifs. Les sommes des carrés ne sont pas identiques car nous avons un plan déséquilibré, ainsi les décompositions ne sont pas indépendantes.
+En revanche, les analyses de la variance diffèrent, et la répartition des sommes des carrés des écarts expliqués par le modèle entre les facteurs diffère. La somme des carrés des écarts dues à l’intéraction ne varie pas, mais celles des deux facteurs *sanitaire* et *democratie* changent, et leurs variations du modèle *lm1* au modèle *lm2* se compensent.
+
+Dans les plan équilibrés, les termes de sommes des produits sont nuls. Dans un plan déséquilibré comme le notre, il peuvent ne pas être nuls et donc impacter les résultats de l'anova. Dans un cas comme celui-ci ces facteurs de somme des produits sont affectés au différents facteurs existants comme *sanitaire*, *democratie* ou même à l'interaction lorsqu'elle est introduite dans le modèle, et ce suivant l'ordre dans lequel nous introduisant les facteurs dans le modèle. 
+
+En résumé :  Les sommes des carrés ne sont pas identiques car nous avons un plan déséquilibré, ainsi les décompositions en carré ne sont pas indépendantes à cause du déséquilibre.
 
 ### Q6. Proposer une solution pour avoir des estimations correctes de votre décomposition de la variance et refaire les conclusions de l’analyse.
 
@@ -343,7 +346,7 @@ summary(lm5)
 ```
 Avec ce test d'anova nous ne pouvons regarder ici  que le niveau du facteur niché, à savoir région. Ainsi il y a des différences très significatives entre les régions de façon globale.
 
-Si l'on regarde les coefficients de *lm5*, et en particulier ceux portés par la variable *region* (car c'est la seule qui a de l'intérêt ici) on voit tout d'abord que certain d'eux non pas de valeur, peut être par manque de donnée. Par ailleurs, si l'on regarde les régions d'Amérique Latine et d'Europe de l'Est, celle-ci ont des coefficients négatifs. Cela signifie que l'écart de moyenne entre ces régions et celle mise en intercepte (par défaut ici c'est l'Afrique Subsaharienne) est négatif, donc que en moyenne l'émission de CO2 est plus élevée en Afrique Subsaharienne qu'en Amérique Latine ou qu'en Europe de l'Est. Toutefois cette interprétation manque de cohérence, de plus on voit dans le summary que l'intercept n'est pas du tout significatif. Il faudrait donc faire un contrast ici pour changer de région. 
+Si l'on regarde les coefficients de *lm5*, et en particulier ceux portés par la variable *region* (car c'est la seule qui a de l'intérêt ici) on voit tout d'abord que certains d'entre eux n'ont pas de valeur, peut être par manque de donnée. Par ailleurs, si l'on regarde les régions d'Amérique Latine et d'Europe de l'Est, celles-ci ont des coefficients négatifs. Cela signifie que l'écart de moyenne entre ces régions et celle mise en intercepte (par défaut ici c'est l'Afrique Subsaharienne) est négatif, donc que en moyenne l'émission de CO2 est plus élevée en Afrique Subsaharienne qu'en Amérique Latine ou qu'en Europe de l'Est. Toutefois cette interprétation manque de cohérence, de plus on voit dans le summary que l'intercepte n'est pas du tout significatif. Il faudrait donc faire un contrast ici pour changer de région. 
 
 ```{r lm5 contrast}
 region2 <- as.factor(region)
@@ -365,13 +368,12 @@ coefficients(lm6)
 Ici on voit donc que l'effet continent n'est pas significatif sur l'émission de CO2 (p-value = 0.621). Par ailleurs la hiérarchisation de notre modèle coûte en puissance, ainsi la p-value du "niveau supérieur" est  beaucoup plus élevée. 
 
 
+Comme le modèle est mixte et hiérarchisé, nous allons utiliser un modèle *lme()* de la librairie *nlme*. Celui-ci est plus approprié à notre cas de figure qu'un modèle *lm()* classique.
+
 ```{r libraries}
 library(nlme)
 library(lme4)
-```
-
-Comme le modèle est mixte et hiérarchisé, nous allons utiliser un modèle *lme()* de la librairie *nlme*. Celui-ci est plus approprié à notre cas de figure qu'un modèle *lm()* classique.
-
+``` 
 
 ```{r lm 5}
 lm5 <- lme(fixed=co2~1+continent, random = list(continent=~1, region=~1))
