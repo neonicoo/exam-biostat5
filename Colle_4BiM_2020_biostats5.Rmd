@@ -307,7 +307,16 @@ En refaisant la simulation mais avec cette fois - ci logCO2, on retombe sur les 
 
 ### Q10. En fonction des différents modèles et des analyses réalisées jusque là, discuter de la robustesse de l’anova en fonction des conditions d’application du test.
 
+Les conditions d'application du test d'anova sont les suivantes :
 
+- Normalité de la distribution ;
+- Il y a homoscedasticité des résidus, c'est à dire qu'ils ont la même variance quelque soit le groupe considéré.
+
+Comme nous l'avons vu plus haut, ces hypothèses ne sont pas respectées pour nos différents modèles linéaires. Cependant, les modèles linéaire et tests anova sont assez **robustes** dès lors que nous avons un échantillon de taille suffisante. Ainsi leur résultats peuvent rester valables, il s'agit là d'une propriété asymptotique. 
+
+Pour ce qui est de la normalité, une solution pourrait être comme nous l'avons fait en Q9, de passer par un logarithme, cela permet d'obtenir une distribution plus "symétrique". 
+
+Pour l'hétéroscédasticité , une solution serait tout simplement de travailler sur un plan équilibré, cela atténuerait les effets de non homogénéité des variances.
 
 ### Q11. Les variables consommation d’eau et émission de CO2 sont-elles corrélées ?Faire un test paramétrique et un test non paramétrique et discuter de la différence de pvalue entre les deux tests.
 
