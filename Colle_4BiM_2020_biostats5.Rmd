@@ -132,34 +132,59 @@ En revanche, les analyses de la variance diffèrent, et la répartition des somm
 
 Dans les plan équilibrés, les termes de sommes des produits sont nuls. Dans un plan déséquilibré comme le notre, il peuvent ne pas être nuls et donc impacter les résultats de l'anova. Dans un cas comme celui-ci ces facteurs de somme des produits sont affectés au différents facteurs existants comme *sanitaire*, *democratie* ou même à l'interaction lorsqu'elle est introduite dans le modèle, et ce suivant l'ordre dans lequel nous introduisant les facteurs dans le modèle. 
 
-En résumé :  Les sommes des carrés ne sont pas identiques car nous avons un plan déséquilibré, ainsi les décompositions en carré ne sont pas indépendantes à cause du déséquilibre.
+En résumé :  Les sommes des carrés ne sont pas identiques car nous avons un plan déséquilibré, ainsi les décompositions en carré ne sont pas indépendantes à cause du déséquilibre.^
 
 ### Q6. Proposer une solution pour avoir des estimations correctes de votre décomposition de la variance et refaire les conclusions de l’analyse.
 
-Une solution pour avoir des estimations correctes de notre décomôsition de la variance serait de transformer notre plan factoriel déséquilibré en plan équilibré. Il faudrait avoir dans chaque case le même nombre de répétition, à savoir le nombre de répétitions le plus faible que nous avons dans notre plan déséquilibré, c'est à dire 7. Ainsi on passerait de 114 mesures à 42 mesures(3 democratie * 2 sanitaire * 7 répétitions ), les tests perdront donc malheureusement de la puissance. 
+Dans le modèle lm1 la somme des carrés de écarts pour le facteur *democratie* qui est introduit en tout premier, est égale à celle lorsque *democratie* est introduit seul dans le modèle. Cette somme est le résultat de la variabilité expliquée par le facteur *democratie* mais aussi des sommes des produits associées aux 2 facteurs. 
 
+Dans le modèle 2, c'est le même raisonnement pour le facteur *sanitaire*. La somme des carrés des écarts de *sanitaire* dans lm2 et la même que lorsqu'on l'introduit seul dans le modèle. Cette somme est donc l'ensemble de la variabilité expliquée par *sanitaire* et par les sommes des produits. 
 
-On pourrait construire un nouveau modèle *aov()* qui cette fois ci prendrait en compte un terme d'erreur porté par l'interaction. Les effets aléatoires doivent être testés par rapport au terme d'intéraction qui inclue à la fois l'erreur pure et l'intéraction.
+Ainsi en créant des modèles de références comme ci-dessous, nous pourrons les comparer 2 à 2 dans des tests anova (test des modèles emboités), cela permettra de ne retenir que l'effet d'un facteur, et de s'affranchir des sommes des produits habituellement affectées à ce facteur.
 
-```{r q6}
-lm3 <- aov(co2~democratie+sanitaire+Error(democratie:sanitaire))
-summary(lm3)
+Voici les 6 modèles que nous utiliserons pour cela :
+
+```{r modèles deréférence }
+lm1 <- lm(co2 ~ democratie*sanitaire)
+lm1b <- lm(co2 ~ democratie + sanitaire)
+lm2 <- lm(co2 ~ sanitaire * democratie)
+lm2b <- lm(co2 ~ sanitaire + democratie)
+lm_democratie <- lm(co2 ~ democratie)
+lm_sanitaire <- lm(co2 ~ sanitaire )
 ```
-Par ailleurs il es facile de retrouver ces p-values avec notre modèle lm1 ( avec interaction ) initial. 
 
-```{r estimation effet}
-1-pf((192.755/8.142), 2, 2) #test de F pour l'effet democratie
-1-pf((313.522/8.142), 1, 2) #test de F pour l'effet sanitaire 
+Pour obtenir l'effet du facteur *democratie* nous allons comparer les modèles *lm2b* et *lm_sanitaire* :
+
+```{r effet democratie :}
+anova(lm2b, lm_sanitaire)
 ```
 
-On peut également estimer la contribution à la variabilité pour nos 2 facteurs aléatoires.
+Pour obtenir l'effet du facteur *sanitaire* nous allons comparer les modèles *lm1b* et *lm_democratie* :
 
-```{r estimations variances}
-sqrt((192.755 - 6.786)/2) #sigma_democratie
-sqrt((313.522 - 6.786)/3) #sigma_sanitaire
-sqrt(6.786) #sigma_residuelles
+```{r effet sanitaire :}
+anova(lm1b, lm_democratie)
 ```
-Ainsi on peut on peur dire qu'il y a à la fois un effet democratie et aussi un effet sanitaire.
+Pour obtenir l'effet de l'interaction, deux possibilités : en comparant lm1 à lm1b ou e comparant lm2 à lm2b. Vous verrez que les résultats d'anova sont les mêmes.
+
+```{r effet interaction :}
+anova(lm1, lm1b)
+anova(lm2, lm2b)
+```
+Pour conclure nous pouvons dire qu'il existe réellement un effet globale de l'état sanitaire d'un pays mais aussi du niveau de démocratie de celui-ci.
+
+
+Remarque : Ce que nous avons fait à la main jusqu'ici est en fait rien de plus que la somme des carrés des écarts  de type II. Par défaut R fourni les sommes des carrés des écarts de type I lors des tests de variance anova classiques. Cependant les sommes de carrés des écarts de type II peuvent être obtenues à partir de la fonction Anova du la librarie "car". Voir ci dessous :
+
+```{r car, message=FALSE}
+library(car)
+```
+```{r anova type II}
+Anova(lm1, type = 2)
+Anova(lm2, type = 2)
+```
+
+On tombe bien sur la même décomposition des variance pour lm1 et pour lm2. 
+
 
 ### Q7. Vérifier les hypothèses associées au premier modèle (lm1) et décrire les problèmes associés.
 
