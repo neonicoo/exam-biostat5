@@ -33,13 +33,13 @@ num_democratie <- as.numeric(democratie)
 tab <- table(num_sanitaire,num_democratie)
 chisq.test(tab)
 ```
-On fait une table de contingence que l'on nomme *tab* avec les effectifs observés pour nos 2 variables « sanitaire » et « democratie ». Les deux variables sont converties préalablement en variables numériques. On effectue un test de chisq2 en comparant nos effectifs observés à nos éffectifs théoriques.
+On fait une table de contingence que l'on nomme *tab* avec les effectifs observés pour nos 2 variables « sanitaire » et « democratie ». Les deux variables sont converties préalablement en variables numériques. On effectue un test de chisq2 en comparant nos effectifs observés à nos effectifs théoriques.
 
-H0 : Les variables « sanitaire » et « democratie » sont idépendantes;
+H0 : Les variables « sanitaire » et « democratie » sont indépendantes;
 
 H1 : Les variables « sanitaire » et « democratie » sont dépendantes.
 
-On effectue le test du chisq2 et nous obtenons une p-value de 6.3e- donc très significative, ce qui nous permet de rejeter H0.
+On effectue le test du chisq2 et nous obtenons une p-value de 9.844e-06 donc très significative, ce qui nous permet de rejeter H0.
 Il existe une relation qui lie la variable « sanitaire » à la variable  « democratie ». Autrement dit, l'état sanitaire varie lorsque que le niveau de démocratie varie.
 
 Remarque : Il faut faire attention à la condition d'utilisation pour le test du chisq2. Celle ci dit qu'il faut vérifier que 80% des classes doivent avoir un effectif théorique supérieure ou égale à 5. 
@@ -61,7 +61,8 @@ fisher.test(tab)
 ```{r Q2}
 xtabs(~ sanitaire + democratie)
 ```
-Grâce à la fonction xtabs ci-dessus, on voit qu'il s'agit d'un plan d'expérience factoriel croisé à deux facteurs (democratie 3 niveaux et sanitaire  niveaux) car pour chaque couple (*sanitaire[i]*, *democratie[j]*) nous avons des mesures de CO2. Le plan est également complet car nous n'avons pas de case vide, mais il est déséquilibré car nous n'avons pas le même nombre de mesures par case. Il s'agit d'un modèle aléatoire car nos deux facteurs *sanitaire* et *democratie* sont aléatoire, les pays ont été choisis volontairement et sont fixes mais les variables qui caractérisent ces pays sont quant à elles aléatoires.
+Grâce à la fonction xtabs ci-dessus, on voit qu'il s'agit d'un plan d'expérience factoriel croisé à deux facteurs (democratie 3 niveaux et sanitaire  niveaux) car pour chaque couple (*sanitaire[i]*, *democratie[j]*) nous avons des mesures de CO2. Le plan est également complet car nous n'avons pas de case vide, mais il est déséquilibré car nous n'avons pas le même nombre de mesures par case. Il s'agit d'un modèle fixe car nos 2 variables explicatives sont fixes. Pour justifier cela nous pouvons dire tout simplement que les différents niveaux des variables ont été sélectionnés et contrôlés pour effectuer cette étude.
+
 
 ### Q3. Comparer les émissions de CO2 des pays en fonction de leur niveau de démocratie et de leur état sanitaire par un modèle (lm1) et réaliser les tests appropriés ?
 
@@ -259,34 +260,34 @@ hist(F[, 2], col = 5) ; abline(v = anova(lm1)$"F value"[2], col = 'red')
 hist(F[,3], col = 3) ; abline(v = anova(lm1)$"F value"[3], col = 'red')
 ```
 
-Avec ce code nous avons réalisé un test de simulation par rééchantillonage et permutation. Nous avons fait 1000 simulations dans lesquelles nous avons permuté aléatoirement et sans remise les 114 mesures d'émissions de CO2. ENsuite nous avons réalisé 1000 modèles linaire *lm* semblable au modèle *lm1*, c'est à dire que nous retrouvons nos trois termes : (*sanitaire*, *democratie*, *sanitaire:democratie*). À chaque simulation nous stockons dans une matrice *F* (1000 par 4) les F-values issus des tests anova.
+Avec ce code nous avons réalisé un test de simulation par rééchantillonage et permutation. Nous avons fait 1000 simulations dans lesquelles nous avons permuté aléatoirement et sans remise les 114 mesures d'émissions de CO2. Ensuite nous avons réalisé 1000 modèles linaire *lm* semblable au modèle *lm1*, c'est à dire que nous retrouvons nos trois termes : (*sanitaire*, *democratie*, *sanitaire:democratie*). À chaque simulation nous stockons dans une matrice *F* (1000 par 4) les F-values issus des tests anova.
 
 Les trois sorties comparent le nombre de fois sur les 1000 simulations nous obtenons une F-value supérieure à celle des facteurs respectifs {1, 2, 3} dans le modèle lm1. POur les facteurs 1 et 2 nous obtenons 0, cela se vérifie sur les histogrammes où l'on aperçois même pas la droite verticale correspondant à la F-value des facteurs pour un anova(lm1).
 
-Pour le facteur 3 nous obtenons un score de 0.3 environ. Ces simulations visent à confirmer les effets aléatoires des facteurs sanitaire et democratie. En effet le fait d'avoir permuté les mesures de CO2 et les scores obtenus pour les facteurs 1 et 2 montrent bien qu'il existe un réel lien entre l'émission de CO2 et le niveau de démocratie du pays ainsi que l'état sanitaire de celui ci. L'interaction des deux facteurs quant à elle n'affecte pas ces mesures, c'est pour cela que nous avons une score pour le facteur (d'interaction) 3 proche de la p-value du *anova(lm1)*. 
+Pour le facteur 3 nous obtenons un score de 0.3 environ. Ces simulations visent à confirmer les effets globaux des facteurs *sanitaire* et *democratie*. En effet le fait d'avoir permuté les mesures de CO2 et les scores obtenus pour les facteurs 1 et 2 montrent bien qu'il existe un réel lien entre l'émission de CO2 et le niveau de démocratie du pays ainsi que l'état sanitaire de celui ci. L'interaction des deux facteurs quant à elle n'affecte pas ces mesures, c'est pour cela que nous avons une score pour le facteur (d'interaction) 3 proche de la p-value du *anova(lm1)*. 
 
 ### Q9. On se propose de transformer la variable CO2 en ln(CO2), refaire l’analyse avec la variable transformée et refaire les conclusions.
 
 ```{r q9}
 logCO2 <- log(co2)
-lm4 <- lm(logCO2 ~ democratie*sanitaire)
+lm3 <- lm(logCO2 ~ democratie*sanitaire)
 ```
 
 On vérifie rapidement les hypothèses associées à ce nouveau modèle lm4 (sans détailler ici)
-```{r hypotheses lm4}
+```{r hypotheses lm3}
 par(mfrow = c(2,2))
-plot(lm4)
-shapiro.test(residuals(lm4)) # on ne rejete pas H0
-bartlett.test(residuals(lm4), democratie)
-bartlett.test(residuals(lm4), sanitaire) # => on rejete H0
+plot(lm3)
+shapiro.test(residuals(lm3)) # on ne rejete pas H0
+bartlett.test(residuals(lm3), democratie)
+bartlett.test(residuals(lm3), sanitaire) # => on rejete H0
 par(mfrow = c(1,1))
-plot(lm4, 4)
+plot(lm3, 4)
 ```
 
 A priori les résidus semblent cette fois ci suivre une loi normale d'espérance nulle. Cependant nous n'avons toujours pas d'homogénéité des variances. Le modèle est un peu plus adapté que lm1 mais le soucis d'homoscédasticité persiste. Les distances de cooks sont également moins élévées.
 
-```{r anova lm4}
-anova(lm4)
+```{r anova lm3}
+anova(lm3)
 ```
 D'après l'anova de *lm4*, les effets democratie et sanitaire sont encore plus significatifs qu'avec le modèle *lm1*.
 
@@ -299,9 +300,9 @@ for (i in 1:1000) {
   lm_temp = lm(logCO2_sim ~ sanitaire * democratie)
   Fb[i, ] = anova(lm_temp)$"F value"
 }
-sum(Fb[, 1] > anova(lm4)$"F value"[1]) / 1000
-sum(Fb[, 2] > anova(lm4)$"F value"[2]) / 1000
-sum(Fb[, 3] > anova(lm4)$"F value"[3]) / 1000
+sum(Fb[, 1] > anova(lm3)$"F value"[1]) / 1000
+sum(Fb[, 2] > anova(lm3)$"F value"[2]) / 1000
+sum(Fb[, 3] > anova(lm3)$"F value"[3]) / 1000
 ```
 En refaisant la simulation mais avec cette fois - ci logCO2, on retombe sur les mêmes résultats, qui est est cohérent ave l'anova fait juste au dessus.
 
@@ -367,7 +368,7 @@ Les p-values sont très faibles dans les 2 tests, la corrélation est donc signi
 On observe que la p-value du test non-paramétrique est très inférieure à celle du test paramétrique. De façon générale, les tests paramétriques sont plus puissants que les test non-paramétriques, c'est à dire qu'ils seront plus apte à rejeter H0, si le rejet est justifié. En revanche, un test non paramétrique sera lui plus robuste qu'un test paramétrique, c'est à dire qu'il pourra être utilisé dans un plus grand nombre de situations.
 
 
-On s’intéresse maintenant à la géographie des émissions de CO2, avec les variables continent (considérée comme fixe) et region_monde (considérée ici, pour les besoins de l’exercice, comme aléatoire).
+On s'intéresse maintenant à la géographie des émissions de CO2, avec les variables continent (considérée comme fixe) et region_monde (considérée ici, pour les besoins de l'exercice, comme aléatoire).
 
 ### Q12. Décrire le plan d’expérience qui intègre les variables continent et region_monde pour expliquer les émissions de CO2 (la variable pays ne sera pas considérée ici).
 
@@ -385,51 +386,55 @@ tab2 <- table(continent, region); tab2
 Commençons par un modèle *lm* classique. La variable *region* étant nichée dans *continent*, nous les introduirons dans l'ordre décroissant (conteneur + contenu ) dans le modèle.
 
 ```{r lm classiques}
-lm5 <- lm(co2 ~ continent + region) # attention l'ordre est important 
-anova(lm5)
-summary(lm5)
+lm4 <- lm(co2 ~ continent + region) # attention l'ordre est important 
+anova(lm4)
+Anova(lm4, type = "II")
+summary(lm4)
 ```
-Avec ce test d'anova nous ne pouvons regarder ici  que le niveau du facteur niché, à savoir région. Ainsi il y a des différences très significatives entre les régions de façon globale.
+Avec ces tests d'anova nous ne pouvons regarder ici que le niveau du facteur niché, à savoir région. Ainsi il y a des différences très significatives entre les régions de façon globale.
 
-Si l'on regarde les coefficients de *lm5*, et en particulier ceux portés par la variable *region* (car c'est la seule qui a de l'intérêt ici) on voit tout d'abord que certains d'entre eux n'ont pas de valeur, peut être par manque de donnée. Par ailleurs, si l'on regarde les régions d'Amérique Latine et d'Europe de l'Est, celles-ci ont des coefficients négatifs. Cela signifie que l'écart de moyenne entre ces régions et celle mise en intercepte (par défaut ici c'est l'Afrique Subsaharienne) est négatif, donc que en moyenne l'émission de CO2 est plus élevée en Afrique Subsaharienne qu'en Amérique Latine ou qu'en Europe de l'Est. Toutefois cette interprétation manque de cohérence, de plus on voit dans le summary que l'intercepte n'est pas du tout significatif. Il faudrait donc faire un contrast ici pour changer de région. 
+Si l'on regarde les coefficients de *lm4* (avec le *summary()* ou la commande *coefficients()*), et en particulier ceux portés par la variable *region* (car c'est la seule qui a de l'intérêt ici) on voit tout d'abord que certains d'entre eux n'ont pas de valeur, peut être par manque de donnée. Par ailleurs, si l'on regarde les régions d'Amérique Latine et d'Europe de l'Est, celles-ci ont des coefficients négatifs. Cela signifie que l'écart de moyenne entre ces régions et celle mise en intercepte (par défaut ici c'est l'Afrique Subsaharienne) est négatif, donc que en moyenne l'émission de CO2 est plus élevée en Afrique Subsaharienne qu'en Amérique Latine ou qu'en Europe de l'Est. Toutefois cette interprétation manque de cohérence, de plus on voit dans le *summary()* que l'intercepte n'est pas du tout significatif. Il faudrait donc faire un contrast ici pour changer de région. 
 
-```{r lm5 contrast}
+```{r lm4 contrast}
 region2 <- as.factor(region)
 contrasts(region2) <- contr.treatment(9, base = 5) # Asie_indus en intercepte
 
-lm5b <- lm(co2 ~ continent + region2) 
-summary(lm5b)
+lm4b <- lm(co2 ~ continent + region2) 
+summary(lm4b)
 ```
 Cette fois ci en ayant placé la région Asie_indus en intercepte, ce dernier est très significatif (p-value = 1.41e-11), cela va nous permettre de mieux comparer 2 à 2 les régions. Par exemple les régions Af_subsahar, Am_latine, Asie_Centrale, Asie_S_SE et Europe_Est on des coefficients négatifs. Cela signifie que leur différence de moyenne avec la région d'Asie_indus est négative, autrement dit que l'Asie industrielle émet plus de CO2 que ces régions là.
 
-Maintenant essayons de regarder s'il existe un effet globale des continents. Pour cela nous allons construire un modèle qui comptabilisera la variabilité expliquée par l'effet région avec l'erreur pure dans la résiduelle.
+Maintenant essayons de regarder s'il existe un effet globale des continents. Pour cela nous allons construire un modèle qui affectera la variabilité expliquée par l'effet région avec l'erreur pure dans la résiduelle.
 
 
-```{r aov lm6}
-lm6 <- aov(co2 ~ continent + Error(region))
-summary(lm6)
-coefficients(lm6)
+```{r aov lm5}
+lm5 <- aov(co2 ~ continent + Error(region))
+summary(lm5)
+coefficients(lm5)
 ```
 Ici on voit donc que l'effet continent n'est pas significatif sur l'émission de CO2 (p-value = 0.621). Par ailleurs la hiérarchisation de notre modèle coûte en puissance, ainsi la p-value du "niveau supérieur" est  beaucoup plus élevée. 
 
+** Pour aller plus loin ** 
 
-Comme le modèle est mixte et hiérarchisé, nous allons utiliser un modèle *lme()* de la librairie *nlme*. Celui-ci est plus approprié à notre cas de figure qu'un modèle *lm()* classique.
+Comme le plan est mixte et hiérarchisé, nous allons utiliser des modèle des librairies *nlme* et *lme4*, ces derniers seront plus appropriés à notre cas de figure plutôt qu'un modèle *lm()* classique.
 
-```{r libraries}
+```{r libraries, message=FALSE}
 library(nlme)
 library(lme4)
 ``` 
 
-```{r lm 5}
-lm5 <- lme(fixed=co2~1+continent, random = list(continent=~1, region=~1))
-summary(lm5)
-coefficients(lm5)
+```{r lm 6}
+lm6 <- lme(fixed=co2~1+continent, random = list(continent=~1, region=~1))
+summary(lm6)
+coefficients(lm6)
+Anova(lm6, type = 2)
 ```
 
 
-```{r lm6}
-lm6 <- lmer(co2~continent+(1|continent:region))
-summary(lm6)
-anova(lm6)
+```{r lm7}
+lm7 <- lmer(co2~continent+(1|continent:region))
+summary(lm7)
+anova(lm7)
+Anova(lm7, type = 2)
 ```
 
