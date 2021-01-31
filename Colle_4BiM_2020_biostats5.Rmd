@@ -104,17 +104,28 @@ On voit donc qu'il y a une différence de moyenne d'émission de co2 entre *demo
 
 ### Q4. Ecrire le modèle lm1 sous la forme d’une équation et interpréter les termes significatifs.
 
-L'équation du modèle s'écrit :
+```{r summary(lm1)}
+summary(lm1)
+```
 
-$lm1b = \beta_0 + \beta_1 \times I[democratiefort] + \beta_2 \times I[democratiemoyen] + \beta_3 \times I[sanitairehaut]$
 
--$\beta_0$ correspond à l'intercept, c'est à dire à la valeur prédite d'émission de co2 pour un niveau de democratie faible et un état sanitaire bas. Cette valeur n'est pas significative ;
+L'équation du modèle *lm1* s'écrit :
 
--$\beta_1$ correspond à la différence de moyenne d'emission de co2 pour pour un niveau de démocratie fort et un niveau de democratie faible, pour même état sanitaire bas. Ce coefficient est significatif ;
+$Y = \beta_0 + \beta_1 \times I[democratiefort] + \beta_2 \times I[democratiemoyen] + \beta_3 \times I[sanitairehaut] \beta_4 \times I[democratiefort] \times I[sanitairehaut]  + \beta_5 \times I[democratiemoyen] \times I[sanitairehaut] + \epsilon$
 
--$\beta_2$ correspond à la différence de moyenne d'emission de co2 pour pour un niveau de démocratie moyen et un niveau de democratie faible, pour un même état sanitaire bas. Ce coefficient n'est pas significatif ;
+-$\beta_0$ correspond à l'intercepte, c'est à dire à la valeur prédite d'émission de co2 pour un niveau de démocratie faible et un état sanitaire bas. Cette valeur n'est pas significative ;
 
--$\beta_3$ correspond à la différence de moyenne d'emission de co2 pour pour un état sanitaire haut et un état sanitaire bas, pour un même niveau de démocratie faible. Ce coefficient est très significatif.
+-$\beta_1$ correspond à la différence de moyenne d'émission de co2 pour pour un niveau de démocratie fort et un niveau de démocratie faible, pour même état sanitaire bas. Ce coefficient est significatif ;
+
+-$\beta_2$ correspond à la différence de moyenne d'émission de co2 pour pour un niveau de démocratie moyen et un niveau de démocratie faible, pour un même état sanitaire bas. Ce coefficient n'est pas significatif ;
+
+-$\beta_3$ correspond à la différence de moyenne d'émission de co2 pour pour un état sanitaire haut et un état sanitaire bas, pour un même niveau de démocratie faible. Ce coefficient est très significatif.
+
+-$\beta4$ correspond à la fois à la différence de moyenne entre les niveaux de démocratie bas et fort et les états sanitaires bas et haut. Il n'est pas significatif.
+
+-$\beta5$ correspond à la fois à la différence de moyenne entre les niveaux de démocratie bas et moyen et les états sanitaires bas et haut. Il n'est pas significatif.
+
+-$\epsilon$ correspond aux résidus que le modèle n'explique pas. 
 
 
 ### Q5. Changer l’ordre d’introduction des variables explicatives de votre modèle ? Quels effets observez-vous sur votre analyse (lm2) et pourquoi ?
@@ -183,7 +194,7 @@ Anova(lm1, type = 2)
 Anova(lm2, type = 2)
 ```
 
-On tombe bien sur la même décomposition des variance pour lm1 et pour lm2. 
+On tombe bien sur la même décomposition des variances pour lm1 et pour lm2. 
 
 
 ### Q7. Vérifier les hypothèses associées au premier modèle (lm1) et décrire les problèmes associés.
