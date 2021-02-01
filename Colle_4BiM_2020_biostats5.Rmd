@@ -42,7 +42,7 @@ H1 : Les variables « sanitaire » et « democratie » sont dépendantes.
 On effectue le test du chisq2 et nous obtenons une p-value de 9.844e-06 donc très significative, ce qui nous permet de rejeter H0.
 Il existe une relation qui lie la variable « sanitaire » à la variable  « democratie ». Autrement dit, l'état sanitaire varie lorsque que le niveau de démocratie varie.
 
-Remarque : Il faut faire attention à la condition d'utilisation pour le test du chisq2. Celle ci dit qu'il faut vérifier que 80% des classes doivent avoir un effectif théorique supérieure ou égale à 5. 
+Remarque : Il faut faire attention à la condition d'utilisation pour le test du chisq2. Celle ci dit qu'il faut vérifier que 80% des classes aient  un effectif théorique supérieure ou égale à 5. 
 
 On peut vérifier cela de la façon suivante :
 
@@ -61,7 +61,7 @@ fisher.test(tab)
 ```{r Q2}
 xtabs(~ sanitaire + democratie)
 ```
-Grâce à la fonction xtabs ci-dessus, on voit qu'il s'agit d'un plan d'expérience factoriel croisé à deux facteurs (democratie 3 niveaux et sanitaire  niveaux) car pour chaque couple (*sanitaire[i]*, *democratie[j]*) nous avons des mesures de CO2. Le plan est également complet car nous n'avons pas de case vide, mais il est déséquilibré car nous n'avons pas le même nombre de mesures par case. Il s'agit d'un modèle fixe car nos 2 variables explicatives sont fixes. Pour justifier cela nous pouvons dire tout simplement que les différents niveaux des variables ont été sélectionnés et contrôlés pour effectuer cette étude.
+Grâce à la fonction xtabs ci-dessus, on voit qu'il s'agit d'un plan d'expérience factoriel croisé à deux facteurs (democratie 3 niveaux et sanitaire 2 niveaux) car pour chaque couple (*sanitaire[i]*, *democratie[j]*) nous avons des mesures de CO2. Le plan est également complet car nous n'avons pas de case vide, mais il est déséquilibré car nous n'avons pas le même nombre de mesures par case. Il s'agit d'un modèle fixe car nos 2 variables explicatives sont fixes. Pour justifier cela nous pouvons dire tout simplement que les différents niveaux des variables ont été sélectionnés et contrôlés pour effectuer cette étude.
 
 
 ### Q3. Comparer les émissions de CO2 des pays en fonction de leur niveau de démocratie et de leur état sanitaire par un modèle (lm1) et réaliser les tests appropriés ?
@@ -116,7 +116,7 @@ $Y = \beta_0 + \beta_1 \times I[democratiefort] + \beta_2 \times I[democratiemoy
 
 -$\beta_0$ correspond à l'intercepte, c'est à dire à la valeur prédite d'émission de co2 pour un niveau de démocratie faible et un état sanitaire bas. Cette valeur n'est pas significative ;
 
--$\beta_1$ correspond à la différence de moyenne d'émission de co2 pour pour un niveau de démocratie fort et un niveau de démocratie faible, pour même état sanitaire bas. Ce coefficient est significatif ;
+-$\beta_1$ correspond à la différence de moyenne d'émission de co2 pour pour un niveau de démocratie fort et un niveau de démocratie faible, pour un même état sanitaire bas. Ce coefficient est significatif ;
 
 -$\beta_2$ correspond à la différence de moyenne d'émission de co2 pour pour un niveau de démocratie moyen et un niveau de démocratie faible, pour un même état sanitaire bas. Ce coefficient n'est pas significatif ;
 
@@ -144,7 +144,7 @@ En revanche, les analyses de la variance diffèrent, et la répartition des somm
 
 Dans les plan équilibrés, les termes de sommes des produits sont nuls. Dans un plan déséquilibré comme le notre, il peuvent ne pas être nuls et donc impacter les résultats de l'anova. Dans un cas comme celui-ci ces facteurs de somme des produits sont affectés au différents facteurs existants comme *sanitaire*, *democratie* ou même à l'interaction lorsqu'elle est introduite dans le modèle, et ce suivant l'ordre dans lequel nous introduisant les facteurs dans le modèle. 
 
-En résumé :  Les sommes des carrés ne sont pas identiques car nous avons un plan déséquilibré, ainsi les décompositions en carré ne sont pas indépendantes à cause du déséquilibre.^
+En résumé :  Les sommes des carrés ne sont pas identiques car nous avons un plan déséquilibré, ainsi les décompositions en carré ne sont pas indépendantes à cause du déséquilibre.
 
 ### Q6. Proposer une solution pour avoir des estimations correctes de votre décomposition de la variance et refaire les conclusions de l’analyse.
 
@@ -185,7 +185,7 @@ anova(lm2, lm2b)
 Pour conclure nous pouvons dire qu'il existe réellement un effet globale de l'état sanitaire d'un pays mais aussi du niveau de démocratie de celui-ci.
 
 
-Remarque : Ce que nous avons fait à la main jusqu'ici est en fait rien de plus que la somme des carrés des écarts  de type II. Par défaut R fourni les sommes des carrés des écarts de type I lors des tests de variance anova classiques. Cependant les sommes de carrés des écarts de type II peuvent être obtenues à partir de la fonction Anova du la librarie "car". Voir ci dessous :
+Remarque : Ce que nous avons fait à la main jusqu'ici est en fait rien de plus que la somme des carrés des écarts  de type II. Par défaut R fournit les sommes des carrés des écarts de type I lors des tests de variances anova classiques. Cependant les sommes de carrés des écarts de type II peuvent être obtenues à partir de la fonction Anova du la librairie "car" comme ci dessous :
 
 ```{r car, message=FALSE}
 library(car)
@@ -206,14 +206,14 @@ Les hypothèses à vérifier sont l'égalité des variances entre les différent
 par(mfrow = c(2, 2))
 plot(lm1)
 ```
-Sur le premier graphique (haut gauche) on voit une légère forme en 'cloche' pour les résidus, de plus l'espérance des résidus est proche de 0 mais n'est pas nulle. ON peut alors se demander si le modèle est bien adapté ? 
+Sur le premier graphique (haut gauche) on voit une légère forme en 'cloche' pour les résidus, de plus l'espérance des résidus est proche de 0 mais n'est pas nulle. On peut alors se demander si le modèle est bien adapté ? 
 
-Sur le graphique en haut à droite, là aussi il est difficile de dire si les résidus suivent une li normale ou non, le mieu est de faire un test de normalité, *shapiro-wilk* par exemple :
+Sur le graphique en haut à droite, là aussi il est difficile de dire si les résidus suivent une li normale ou non, le mieux est de faire un test de normalité, *shapiro-wilk* par exemple :
 
 ```{r shapiro-wilk}
 shapiro.test(residuals(lm1))
 ```
-On a une p-value très significative qui nous permet de rejeter H0 : les résidus sont normalement distribués.
+On a une p-value très significative qui nous permet de rejeter H0 et de conclure à la non normalité des résidus.
 
 Troisième graphique (bas gauche) concernant les variances des résidus pour chaque combinaison de niveau de démocratie et d'état sanitaire. Là aussi il est difficile de conclure à une variance constante des résidus avec le graphe car on peut discerner une légère forme constituée de 2 pentes. On va donc effectuer une test de *bartlett* :
 
@@ -222,7 +222,7 @@ bartlett.test(residuals(lm1), interaction(democratie, sanitaire))
 ```
 La p-value est très faible donc on rejet l'hypothèse nulle de variance constante des résidus. 
 
-Sur le 4ème graphique (bas droite) on voit que les points 33, 35 et 38 se démarque un peu plus que les autres, mais gardent une distance de Cook inférieure à 0.5, donc nous pouvons dire qu'il n'y a pas de valeur aberrante (outlier).
+Sur le 4ème graphique (bas droite) on voit que les points 33, 35 et 38 se démarquent un peu plus que les autres, mais gardent une distance de Cook inférieure à 0.5, donc nous pouvons dire qu'il n'y a pas de valeur aberrante (outlier).
 
 On peut également vérifier cette dernière hypothèse avec le plot suivant qui est peut être plus clair :
 
@@ -231,7 +231,7 @@ par(mfrow=c(1,1))
 plot(lm1,4)
 ```
 
-En conclusion, ces hypothèses nous permettent de dire que le modèle lm1 n'est pas le modèle le plus adapté pour notre analyse. 
+En conclusion, ces hypothèses nous permettent de dire que le modèle linéaire lm1 n'est pas le modèle le plus adapté pour notre analyse. 
 
 ### Q8. On propose le code R ci-dessous. Expliquer ce qui est fait et comment peut-ont interpréter les 3 sorties numériques finales ?
 
@@ -251,7 +251,6 @@ sum(F[, 3] > anova(lm1)$"F value"[3]) / 1000
 
 Graphiquement cela donnerait :
 
-Remarque : Sur les histogrammes on obtient des "formes" de loi de chisq2 ou loi de Fisher. Attention toutefois rien ne dit qu'il s'agit réellement de l'une ou l'autre de ces lois.
 
 ```{r histo}
 par(mfrow=c(1,3))
@@ -260,9 +259,11 @@ hist(F[, 2], col = 5) ; abline(v = anova(lm1)$"F value"[2], col = 'red')
 hist(F[,3], col = 3) ; abline(v = anova(lm1)$"F value"[3], col = 'red')
 ```
 
-Avec ce code nous avons réalisé un test de simulation par rééchantillonage et permutation. Nous avons fait 1000 simulations dans lesquelles nous avons permuté aléatoirement et sans remise les 114 mesures d'émissions de CO2. Ensuite nous avons réalisé 1000 modèles linaire *lm* semblable au modèle *lm1*, c'est à dire que nous retrouvons nos trois termes : (*sanitaire*, *democratie*, *sanitaire:democratie*). À chaque simulation nous stockons dans une matrice *F* (1000 par 4) les F-values issus des tests anova.
+Remarque : Sur les histogrammes on obtient des "formes" de loi de chisq2 ou loi de Fisher. Attention toutefois rien ne dit qu'il s'agit réellement de l'une ou l'autre de ces lois.
 
-Les trois sorties comparent le nombre de fois sur les 1000 simulations nous obtenons une F-value supérieure à celle des facteurs respectifs {1, 2, 3} dans le modèle lm1. POur les facteurs 1 et 2 nous obtenons 0, cela se vérifie sur les histogrammes où l'on aperçois même pas la droite verticale correspondant à la F-value des facteurs pour un anova(lm1).
+Avec ce code nous avons réalisé un test de simulation par rééchantillonnage et permutation. Nous avons fait 1000 simulations dans lesquelles nous avons permuté aléatoirement et sans remise les 114 mesures d'émissions de CO2. Ensuite nous avons réalisé 1000 modèles linaires *lm* semblable au modèle *lm1*, c'est à dire que nous retrouvons nos trois termes : (*sanitaire*, *democratie*, *sanitaire:democratie*). À chaque simulation nous stockons dans une matrice *F* (1000 par 4) les F-values issus des tests anova.
+
+Les trois sorties comparent le nombre de fois sur les 1000 simulations où nous obtenons une F-value supérieure à celle des facteurs respectifs {1, 2, 3} dans le modèle lm1. Pour les facteurs 1 et 2 nous obtenons 0, cela se vérifie sur les histogrammes où l'on aperçois même pas la droite verticale correspondant à la F-value des facteurs pour un anova(lm1).
 
 Pour le facteur 3 nous obtenons un score de 0.3 environ. Ces simulations visent à confirmer les effets globaux des facteurs *sanitaire* et *democratie*. En effet le fait d'avoir permuté les mesures de CO2 et les scores obtenus pour les facteurs 1 et 2 montrent bien qu'il existe un réel lien entre l'émission de CO2 et le niveau de démocratie du pays ainsi que l'état sanitaire de celui ci. L'interaction des deux facteurs quant à elle n'affecte pas ces mesures, c'est pour cela que nous avons une score pour le facteur (d'interaction) 3 proche de la p-value du *anova(lm1)*. 
 
@@ -273,7 +274,7 @@ logCO2 <- log(co2)
 lm3 <- lm(logCO2 ~ democratie*sanitaire)
 ```
 
-On vérifie rapidement les hypothèses associées à ce nouveau modèle lm4 (sans détailler ici)
+On vérifie rapidement les hypothèses associées à ce nouveau modèle lm3 (sans détailler ici)
 ```{r hypotheses lm3}
 par(mfrow = c(2,2))
 plot(lm3)
@@ -284,12 +285,12 @@ par(mfrow = c(1,1))
 plot(lm3, 4)
 ```
 
-A priori les résidus semblent cette fois ci suivre une loi normale d'espérance nulle. Cependant nous n'avons toujours pas d'homogénéité des variances. Le modèle est un peu plus adapté que lm1 mais le soucis d'homoscédasticité persiste. Les distances de cooks sont également moins élévées.
+A priori les résidus semblent cette fois ci suivre une loi normale d'espérance nulle. Cependant nous n'avons toujours pas d'homogénéité des variances. Le modèle est un peu plus adapté que lm1 mais le soucis d'homoscédasticité persiste. Les distances de Cooks sont également moins élevées ( > 0.10), les individus 2, 9 et 94 se démarquent des autres toute fois. .
 
 ```{r anova lm3}
 anova(lm3)
 ```
-D'après l'anova de *lm4*, les effets democratie et sanitaire sont encore plus significatifs qu'avec le modèle *lm1*.
+D'après l'anova de *lm3*, les effets *democratie* et *sanitaire* sont encore plus significatifs qu'avec le modèle *lm1*.
 
 ```{r simulation avec logCO2}
 Fb = matrix(0, nc = 4, nr = 1000)
@@ -304,7 +305,7 @@ sum(Fb[, 1] > anova(lm3)$"F value"[1]) / 1000
 sum(Fb[, 2] > anova(lm3)$"F value"[2]) / 1000
 sum(Fb[, 3] > anova(lm3)$"F value"[3]) / 1000
 ```
-En refaisant la simulation mais avec cette fois - ci logCO2, on retombe sur les mêmes résultats, qui est est cohérent ave l'anova fait juste au dessus.
+En refaisant la simulation de rééchantillonnage mais avec cette fois - ci logCO2, on retombe sur les mêmes résultats, ce quiest cohérent avec l'anova fait juste au dessus.
 
 ### Q10. En fonction des différents modèles et des analyses réalisées jusque là, discuter de la robustesse de l’anova en fonction des conditions d’application du test.
 
@@ -313,9 +314,9 @@ Les conditions d'application du test d'anova sont les suivantes :
 - Normalité de la distribution ;
 - Il y a homoscedasticité des résidus, c'est à dire qu'ils ont la même variance quelque soit le groupe considéré.
 
-Comme nous l'avons vu plus haut, ces hypothèses ne sont pas respectées pour nos différents modèles linéaires. Cependant, les modèles linéaire et tests anova sont assez **robustes** dès lors que nous avons un échantillon de taille suffisante. Ainsi leur résultats peuvent rester valables, il s'agit là d'une propriété asymptotique. 
+Comme nous l'avons vu plus haut, ces hypothèses ne sont pas respectées pour nos différents modèles linéaires. Cependant, les modèles linéaires et tests anova sont assez **robustes** dès lors que nous avons un échantillon de taille suffisante. Ainsi leur résultats peuvent rester valables, il s'agit là d'une propriété asymptotique. 
 
-Pour ce qui est de la normalité, une solution pourrait être comme nous l'avons fait en Q9, de passer par un logarithme, cela permet d'obtenir une distribution plus "symétrique". 
+Pour ce qui est de la normalité, une solution pourrait être comme nous l'avons fait en Q9, de passer par un logarithme, cela permet d'obtenir une distribution plus "symétrique". Une racine carrée aurait éventuellement pue être possible également. 
 
 Pour l'hétéroscédasticité , une solution serait tout simplement de travailler sur un plan équilibré, cela atténuerait les effets de non homogénéité des variances.
 
@@ -323,7 +324,7 @@ Pour l'hétéroscédasticité , une solution serait tout simplement de travaille
 
 Les tests paramétriques fonctionnent en supposant que les données que l’on a à disposition suivent un type de loi de distribution connu (en général la loi normale). Les tests non paramétriques ne font aucune hypothèse sur le type de loi de distribution des données. Ils se basent uniquement sur les propriétés numériques des échantillons.
 
-Pour voir si nos variables eau et co2 sont corrélées nous pouvons utiliser le *cor.test*. Attention par défaut le *cor.test* utilise la méthode de "Pearson" fait l'hypothèse que notre échantillon suit une loi normale, c'est donc un test paramétrique. Nous pouvons donc faire une simulation par permutation afin de voir si nos variables suivent une loi normale :
+Pour voir si nos variables eau et co2 sont corrélées nous pouvons utiliser le *cor.test*. Attention par défaut le *cor.test* utilise la méthode de "Pearson" qui fait l'hypothèse que notre échantillon suit une loi normale, c'est donc un test paramétrique. Nous pouvons donc faire une simulation par permutation afin de voir si nos variables suivent une loi normale :
 
 ```{r q11 norm}
 library(nortest)
@@ -342,7 +343,7 @@ for (i in 1:1000) {
 hist(simulation, col = "aquamarine")
 cvm.test(simulation)
 ```
-L 'hypothèse que nos 2 variablse eau et co2 suivent une distribution bormale est donc vérifiée, nous pouvons utiliser un test paramétrique :
+L 'hypothèse que nos 2 variables *eau* et *co2* suivent une distribution normale est donc vérifiée, nous pouvons utiliser un test paramétrique :
 
 ```{r test param}
 cor.test(co2, eau, m = "pearson")
@@ -391,7 +392,7 @@ anova(lm4)
 Anova(lm4, type = "II")
 summary(lm4)
 ```
-Avec ces tests d'anova nous ne pouvons regarder ici que le niveau du facteur niché, à savoir région. Ainsi il y a des différences très significatives entre les régions de façon globale.
+Avec ces tests d'anova nous ne pouvons regarder ici que le niveau du facteur niché, à savoir *region*. Ainsi il y a des différences très significatives entre les régions de façon globale.
 
 Si l'on regarde les coefficients de *lm4* (avec le *summary()* ou la commande *coefficients()*), et en particulier ceux portés par la variable *region* (car c'est la seule qui a de l'intérêt ici) on voit tout d'abord que certains d'entre eux n'ont pas de valeur, peut être par manque de donnée. Par ailleurs, si l'on regarde les régions d'Amérique Latine et d'Europe de l'Est, celles-ci ont des coefficients négatifs. Cela signifie que l'écart de moyenne entre ces régions et celle mise en intercepte (par défaut ici c'est l'Afrique Subsaharienne) est négatif, donc que en moyenne l'émission de CO2 est plus élevée en Afrique Subsaharienne qu'en Amérique Latine ou qu'en Europe de l'Est. Toutefois cette interprétation manque de cohérence, de plus on voit dans le *summary()* que l'intercepte n'est pas du tout significatif. Il faudrait donc faire un contrast ici pour changer de région. 
 
@@ -435,4 +436,4 @@ lm7 <- lmer(co2~continent+(1|continent:region))
 summary(lm7)
 anova(lm7)
 ```
-Ici nous avons la confirmation par l'anova que *continent* n'induit globalement aucun effet sur l'émission de CO2. Par ailleurs, dans le *summary()* on voit clairement qu'aucun des coefficient n'est significatif. L'Asie est cependant à la limite de la significativité (p-value = 0.09), finalement cela est plus ou moins cohérent avec ce que nous avons plus haut avec notre modèle *lm4b* lorsque nous avons placé la région d'Asie industrielle en intercept.
+Ici nous avons la confirmation par l'anova que *continent* n'induit globalement aucun effet sur l'émission de CO2. Par ailleurs, dans le *summary()* on voit clairement qu'aucun des coefficients n'est significatif. L'Asie est cependant à la limite de la significativité (p-value = 0.09), finalement cela est plus ou moins cohérent avec ce que nous avons plus haut avec notre modèle *lm4b* lorsque nous avons placé la région d'Asie industrielle en intercepte.
